@@ -40,7 +40,7 @@ except:
 apiToken={'Authorization':'Token {}'.format(apiToken)}
 
 dnsServers=dns.resolver.Resolver()
-dnsServers.nameservers=['10.11.12.2']
+dnsServers.nameservers=dnsList
 
 apiSession=requests.Session()
 #if verifySSL:
