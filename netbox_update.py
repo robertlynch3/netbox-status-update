@@ -77,6 +77,8 @@ def checkDNS(address):
                 answer=j.to_text().rstrip('.')
     except:
         return
+    if answer==None:
+        return
     if address['dns_name']=="" and answer!=None:
         url="{}/ip-addresses/{}/".format(api_base_url,address['id'])
         update={'id':address['id'],'dns_name':answer}
@@ -84,7 +86,7 @@ def checkDNS(address):
             return("{}: updated successful".format(ip))
         else:
             return("{}: update failed".format(ip))
-    elif address['dns_name']!="" and address['dns_name']!=answer and answer!=None:
+    elif address['dns_name']!="" and address['dns_name']!=answer and address['custom_fields']['FQDN']!=answer
         url="{}/ip-addresses/{}/".format(api_base_url,address['id'])
         address['custom_fields']['FQDN']=answer
         update={'id':address['id'],'custom_fields': address['custom_fields']}
