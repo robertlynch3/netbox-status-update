@@ -106,12 +106,12 @@ def getPrefixes():
 
 if __name__=='__main__':
     pool = Pool(processes=45)
-    if sys.argv[1]=='check':
+    if sys.argv[1]=='ip':
         result = pool.map(checkStatus, getIPaddresses()['results'])
     elif sys.argv[1]=='dns':
         result = pool.map(checkDNS, getIPaddresses()['results'])
     else:
-        print("Specify OPTIONS \'check\' or \'dns\'")
+        print("Specify OPTIONS \'ip\' or \'dns\'")
         sys.exit()
     for index in result:
             if index!=None:
