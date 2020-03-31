@@ -10,7 +10,8 @@
 
 
 
-import json, requests, dns.resolver, sys
+import json, requests, dns.resolver, sys, argparse
+from os import getuid
 from ping3 import ping
 
 from multiprocessing import Pool
@@ -108,13 +109,29 @@ def getPrefixes():
 
 if __name__=='__main__':
     pool = Pool(processes=45)
-    if sys.argv[1]=='ip':
+    parser=argparse.ArgumentParser()
+
+    parser.add_argument('-i', '--ip', help='Scan IP addresses for status',action='store_true')
+    parser.add_argument('-d', '--dns', help='Check DNS entries',action='store_true')
+
+    args=parser.parse_args()
+    if args.ip:
+        # confirms that script is running as root
+        if getuid()!=0:
+            print("Program need to be run as root.")
+            sys.exit()
+
+        print("Starting IP scan")
         result = pool.map(checkStatus, getIPaddresses()['results'])
-    elif sys.argv[1]=='dns':
+        for index in result:
+                if index!=None:
+                    print(index)
+    elif args.dns:
+        print("Starting DNS scan")
         result = pool.map(checkDNS, getIPaddresses()['results'])
+        for index in result:
+                if index!=None:
+                    print(index)
     else:
-        print("Specify OPTIONS \'ip\' or \'dns\'")
-        sys.exit()
-    for index in result:
-            if index!=None:
-                print(index)
+        parser.print_help()
+    
