@@ -52,7 +52,7 @@ def checkStatus(address):
     if 'Ignore from Automatic Status Update?' in address['custom_fields'] and address['custom_fields']['Ignore from Automatic Status Update?']==True:
         return("{}: ignored".format(ip))
     else:
-        if ping(ip,timeout=10) is None:
+        if ping(ip,timeout=3) is None:
             status=deactiveIPid
         else:
             status=activeIPid
