@@ -10,7 +10,7 @@
 
 
 
-import json, requests, dns.resolver, sys, argparse
+import json, requests, dns.resolver, sys, argparse, syslog
 from os import getuid
 from ping3 import ping
 
@@ -52,7 +52,8 @@ def checkStatus(address):
     if 'Ignore from Automatic Status Update?' in address['custom_fields'] and address['custom_fields']['Ignore from Automatic Status Update?']==True:
         return("{}: ignored".format(ip))
     else:
-        if ping(ip,timeout=3) is None:
+        data=ping(ip,timeout=3)
+        if data is None:
             status=deactiveIPid
         else:
             status=activeIPid
@@ -64,7 +65,7 @@ def checkStatus(address):
             url="{}/ip-addresses/{}/".format(api_base_url,address['id'])
             update={'id':address['id'],'status':status}
             if apiSession.patch(url,headers=apiToken, json=update).status_code==200:
-                return("{}: updated successful".format(ip))
+                return("{}: update successful - DATA: {}".format(ip, data))
             else:
                 return("{}: update failed".format(ip))
 
@@ -92,7 +93,7 @@ def checkDNS(address):
         address['custom_fields']['FQDN']=answer
         update={'id':address['id'],'custom_fields': address['custom_fields']}
         if apiSession.patch(url,headers=apiToken, json=update).status_code==200:
-            return("{}: updated successful".format(ip))
+            return("{}: update successful".format(ip))
         else:
             return("{}: update failed".format(ip))
     else:
@@ -113,6 +114,7 @@ if __name__=='__main__':
 
     parser.add_argument('-i', '--ip', help='Scan IP addresses for status',action='store_true')
     parser.add_argument('-d', '--dns', help='Check DNS entries',action='store_true')
+    parser.add_argument('-l', '--log', help='Log response',action='store_true')
 
     args=parser.parse_args()
     if args.ip:
@@ -123,15 +125,32 @@ if __name__=='__main__':
 
         print("Starting IP scan")
         result = pool.map(checkStatus, getIPaddresses()['results'])
+        updateCount=failedCount=0
         for index in result:
                 if index!=None:
+                    if 'update successful' in index:
+                        updateCount+=1
+                    elif 'update failed' in index:
+                        failedCount+=1
                     print(index)
+        if args.log and (updateCount>0 or failedCount>0):
+            syslog.syslog("Netbox IP Check: {} updated, {} failed".format(updateCount, failedCount))
+        
+
     elif args.dns:
         print("Starting DNS scan")
         result = pool.map(checkDNS, getIPaddresses()['results'])
+        updateCount=failedCount=0
         for index in result:
                 if index!=None:
+                    if 'update successful' in index:
+                        updateCount+=1
+                    elif 'update failed' in index:
+                        failedCount+=1
                     print(index)
+        if args.log and (updateCount>0 or failedCount>0):
+            syslog.syslog("Netbox DNS Check: {} updated, {} failed".format(updateCount, failedCount))
+
     else:
         parser.print_help()
     
