@@ -52,7 +52,7 @@ def checkStatus(address):
     if 'Ignore from Automatic Status Update?' in address['custom_fields'] and address['custom_fields']['Ignore from Automatic Status Update?']==True:
         return("{}: ignored".format(ip))
     else:
-        data=ping(ip,timeout=3)
+        data=ping(ip,timeout=10)
         if data is None:
             status=deactiveIPid
         else:
@@ -98,7 +98,14 @@ def checkDNS(address):
             return("{}: update failed".format(ip))
     else:
         return
-        
+
+#get the prefixes
+#get registered IPs in each prefix
+#ping IPs that aren't registered
+#register them if they aren't 
+# if they are 'down' for x amount of days delete delete them
+# if they have been changed within the last x amount of days and changes weren't by automation, change them to registered  (view change log https://APIURL/api/extras/object-changes/?changed_object_id=INTEGER)
+
 
 def getIPaddresses():
     return(json.loads(apiSession.get(api_base_url+"/ip-addresses?limit=0", headers=apiToken).text))
